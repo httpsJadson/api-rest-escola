@@ -2,7 +2,7 @@
 var _User = require('../models/User'); var _User2 = _interopRequireDefault(_User);
 
 exports. default = async (req, res, next) => {
-  const { authorization } = req.headers;
+  const authorization = (req.get && req.get('authorization')) || (req.headers && req.headers.authorization) || (req.body && req.body.authorization);
 
   if (!authorization) {
     return res.status(401).json({
