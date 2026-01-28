@@ -29,7 +29,7 @@ class TokenController {
       const token = jwt.sign({ id, email }, process.env.TOKEN_SECRET, {
         expiresIn: process.env.TOKEN_EXPIRATION,
       });
-      return res.json({ token });
+      return res.json({ token, user: { nome: user.nome, id: user.id, email: user.email } });
     } catch (e) {
       console.log('Error in token generation:', e.message);
       return res.status(400).json({ errors: [e.message] });
