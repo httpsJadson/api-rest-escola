@@ -1,104 +1,227 @@
-# 🚀 API REST - Gerenciamento de Usuários e Alunos
+# API REST — Usuários, Alunos e Uploads
 
-## 📋 Descrição
+Documentação completa da API Node.js/Express usada para gerenciar usuários, alunos e upload de fotos.
 
-Esta é uma API REST desenvolvida em **Node.js** utilizando **Express.js** para gerenciar usuários e alunos. A aplicação utiliza **Sequelize** como ORM para interagir com um banco de dados **MariaDB**. Inclui funcionalidades de autenticação com hash de senhas usando **bcryptjs**, e suporte para uploads de arquivos. 🛡️🔐
+**Stack principal**: Node.js, Express, Sequelize, MariaDB, Multer, JWT, bcryptjs.
 
-### ✨ Funcionalidades
+## Sumário
+- Visão geral
+- Requisitos e instalação
+- Variáveis de ambiente
+- Scripts úteis
+- Banco de dados e migrações
+- Modelos (User, Aluno, Fotos)
+- Rotas / Endpoints (com payloads e autenticação)
+- Upload de arquivos
+- Como testar (exemplos curl)
+- Observações
 
-- **👥 Usuários**: CRUD completo (Criar, Ler, Atualizar, Deletar) para usuários, incluindo nome, email e senha.
-- **🎓 Alunos**: CRUD para alunos, com campos como nome, sobrenome, email, idade, peso e altura.
-- **🔒 Autenticação**: Senhas são hasheadas para segurança.
-- **📁 Uploads**: Pasta `uploads` para armazenamento de arquivos enviados.
+---
 
-### 🛠️ Tecnologias Utilizadas
+## Visão geral
 
-- **🟢 Node.js**: Ambiente de execução.
-- **⚡ Express.js**: Framework para construção da API.
-- **🗄️ Sequelize**: ORM para banco de dados.
-- **🐬 MariaDB**: Banco de dados relacional.
-- **🔑 bcryptjs**: Para hash de senhas.
-- **🌍 dotenv**: Para variáveis de ambiente.
-- **📜 Sucrase**: Para suporte a sintaxe ES6+.
-- **🔄 Nodemon**: Para desenvolvimento com recarregamento automático.
+API que fornece:
 
-## 🏃‍♂️ Como Rodar
+- CRUD de `Users` (com senha hasheada)
+- CRUD de `Alunos` (com geração automática de email) e associação a `Fotos`
+- Autenticação via JWT (rota `/tokens`) para obter token
+- Upload de arquivos de imagem (`/upload`) que associa fotos a alunos
 
-### 📋 Pré-requisitos
+O código principal fica em `src/` e as rotas são montadas em `src/routes`.
 
-- 🟢 Node.js instalado (versão 14 ou superior).
-- 🐬 MariaDB instalado e rodando.
-- 📦 npm ou yarn para gerenciamento de pacotes.
+---
 
-### 📥 Instalação
+## Requisitos
 
-1. 📥 Clone o repositório ou baixe os arquivos.
+- Node.js (>=14)
+- MariaDB
+- npm
 
-2. 📦 Instale as dependências:
-   ```
-   npm install
-   ```
+---
 
-3. ⚙️ Configure o banco de dados:
-   - 🗃️ Crie um banco de dados MariaDB.
-   - 📄 Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-     ```
-     DATABASE_HOST=localhost ou ip
-     DATABASE_PORT=3306
-     DATABASE_USERNAME=seu_usuario
-     DATABASE_PASSWORD=sua_senha
-     DATABASE_NAME=nome_do_banco
-     ```
+## Instalação
 
-4. 🏗️ Execute as migrações para criar as tabelas:
-   ```
-   npx sequelize-cli db:migrate
-   ```
+1. Instale dependências:
 
-### ▶️ Executando a Aplicação
-
-Para rodar em modo de desenvolvimento (com nodemon):
+```bash
+npm install
 ```
+
+2. Crie o arquivo `.env` na raiz com as variáveis (exemplo abaixo).
+
+3. Crie o banco no MariaDB e rode migrações:
+
+```bash
+npx sequelize-cli db:migrate
+```
+
+4. Rodar em modo desenvolvimento:
+
+```bash
 npm run dev
 ```
 
-A aplicação estará rodando em `🌐 http://localhost:3001`.
+O servidor carrega `APP_PORT` do `.env` (se não definido, defina-o). A aplicação serve arquivos estáticos da pasta `uploads/images`.
 
-### 🔗 Endpoints da API
+---
 
-#### 👥 Usuários (`/users`)
-- `POST /users`: Criar um novo usuário. ➕
-- `GET /users`: Listar todos os usuários. 📋
-- `GET /users/:id`: Obter um usuário específico. 🔍
-- `PUT /users/:id`: Atualizar um usuário. ✏️
-- `DELETE /users/:id`: Deletar um usuário. 🗑️
-
-#### 🏠 Home (`/`)
-- `GET /`: Página inicial (definida em `homeRoutes`). 🏠
-
-Para alunos, os endpoints seguem uma estrutura similar, mas não estão explicitamente definidos nas rotas fornecidas. Verifique os controladores para mais detalhes. 🔍
-
-### 📂 Estrutura do Projeto
+## Variáveis de ambiente (exemplo)
 
 ```
-📁 app.js: Configuração principal da aplicação.
-📁 server.js: Inicialização do servidor.
-📁 src/
-  ├── 📁 config/database.js: Configuração do banco de dados.
-  ├── 📁 controllers/: Controladores para lógica de negócio.
-  ├── 📁 models/: Modelos Sequelize para Usuários e Alunos.
-  ├── 📁 routes/: Definição das rotas.
-  ├── 📁 database/: Conexão e migrações.
-  ├── 📁 middlewares/: Middlewares personalizados.
-📁 uploads/: Pasta para uploads de arquivos.
-📁 package.json: Dependências e scripts.
-📁 nodemon.json: Configuração do nodemon.
+APP_URL=http://localhost:3001
+APP_PORT=3001
+TOKEN_SECRET=uma_chave_secreta
+TOKEN_EXPIRATION=86400
+DATABASE_HOST=localhost
+DATABASE_PORT=3306
+DATABASE_USERNAME=root
+DATABASE_PASSWORD=senha
+DATABASE_NAME=nome_do_banco
 ```
 
-### 🤝 Contribuição
+---
 
-Esse projeto se trata exclusivamente de um sistem voltado para fins didáticos, onde meu unico intuito é demonstrar meus conhecimentos em restAPI. 📚🎓
+## Scripts úteis (package.json)
 
-### Licença
+- `npm run dev` — inicia `nodemon server.js` (modo desenvolvimento)
+- `npm run build` — transpila com `sucrase` para `dist/`
+- `npm start` — executa `node dist/server.js`
 
-Este projeto está sob a licença ISC.
+---
+
+## Banco de dados e migrações
+
+Migrações disponíveis em `src/database/migrations`:
+
+- `20260121145040-alunos.js` — tabela `alunos` (id, nome, sobrenome, email, idade, peso, altura)
+- `20260121180344-users.js` — tabela `users` (id, nome, email, password_hash)
+- `20260123000426-criar-tabela-de-foto-do-aluno.js` — tabela `fotos` (nome_original, nome_file, aluno_id)
+
+Conexão/configuração: `src/config/database.js` — usa variáveis de ambiente e timezone `-03:00`.
+
+---
+
+## Modelos (resumo)
+
+- `User` (`src/models/User.js`)
+   - campos: `nome`, `email` (único), `password_hash`, `password` (virtual)
+   - validações: nome (3-255), email (formato), senha (6-50)
+   - hook `beforeSave` para gerar `password_hash` com `bcryptjs`
+   - método `passwordIsValid(password)` para comparação
+
+- `Aluno` (`src/models/Aluno.js`)
+   - campos: `nome`, `sobrenome`, `email` (único), `idade` (int), `peso` (float), `altura` (float)
+   - validações de tamanho e tipos
+   - associação: `hasMany(Fotos)`
+
+- `Fotos` (`src/models/Fotos.js`)
+   - campos: `nome_original`, `nome_file`, `file_url` (virtual que monta URL usando `APP_URL`)
+   - associação: `belongsTo(Aluno)`
+
+---
+
+## Rotas e Endpoints
+
+Observação: muitas rotas requerem autenticação (middleware `loginRequired`) que espera `req.userId` a partir do token JWT.
+
+Base: `APP_URL` (ex.: http://localhost:3001)
+
+- Home
+   - `GET /` — retorna `index` (teste simples)
+
+- Tokens (autenticação)
+   - `POST /tokens` — login
+      - Body: `{ "email": "...", "password": "..." }`
+      - Sucesso: `{ "token": "<jwt>" }`
+      - Observações: usa `TOKEN_SECRET` e `TOKEN_EXPIRATION`
+
+- Users
+   - `POST /users` — cria usuário (requer `loginRequired` no arquivo de rotas)
+      - Body: `{ "nome": "...", "email": "...", "password": "..." }`
+      - Respostas: retorna usuário criado (sem senha)
+   - `PUT /users/:id` — atualiza usuário (requer `loginRequired`)
+      - Body: campos para atualizar (nome, email, password)
+      - Observação: o controller usa `req.userId` para buscar o usuário a ser atualizado
+   - `DELETE /users/:id` — deleta um usuário (requer `loginRequired`)
+
+   - Nota: Endpoints `GET /users` e `GET /users/:id` existem no controller, porém nos `userRoutes.js` estão comentados/omitidos intencionalmente.
+
+- Alunos
+   - `GET /alunos` — lista todos os alunos com suas `Fotos`
+   - `POST /alunos` — cria aluno (requer `loginRequired`)
+      - Body: `{ "nome": "...", "sobrenome": "...", "idade": number, "peso": number, "altura": number }`
+      - Observação: email é gerado automaticamente a partir do nome/sobrenome; se duplicado, um sufixo numérico é adicionado
+   - `GET /alunos/:id` — retorna um aluno específico (com fotos)
+   - `PUT /alunos/:id` — atualiza (requer `loginRequired`)
+   - `DELETE /alunos/:id` — deleta (requer `loginRequired`)
+
+- Upload
+   - `POST /upload` — envia uma imagem e associa a um aluno (requer `loginRequired`)
+      - Form data (multipart/form-data):
+         - campo de arquivo: `upload_arquive` (aceita `image/png` e `image/jpeg` apenas)
+         - campo de formulário: `idaluno` — id do aluno a associar
+      - Armazenamento: `uploads/images/` com nome: `<timestamp>_<random><ext>`
+      - Salva registro em `fotos` com `nome_original`, `nome_file`, `aluno_id`
+
+---
+
+## Middleware de Autenticação
+
+O projeto contém `src/middlewares/loginRequired.js` (verificar) que valida JWT e populates `req.userId`. Para rotas protegidas, envie o header:
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+## Exemplo rápido com curl
+
+1) Obter token:
+
+```bash
+curl -X POST http://localhost:3001/tokens -H "Content-Type: application/json" -d '{"email":"user@example.com","password":"senha"}'
+```
+
+2) Criar aluno (exemplo com token):
+
+```bash
+curl -X POST http://localhost:3001/alunos -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d '{"nome":"Joao","sobrenome":"Silva","idade":25,"peso":70,"altura":1.75}'
+```
+
+3) Upload de foto (multipart):
+
+```bash
+curl -X POST http://localhost:3001/upload -H "Authorization: Bearer <token>" -F "upload_arquive=@/caminho/para/foto.jpg" -F "idaluno=1"
+```
+
+---
+
+## Observações e pontos de atenção
+
+- `userRoutes.js` atualmente exige `loginRequired` para criar/atualizar/deletar usuários; as rotas públicas de listagem (`GET /users`) estão comentadas.
+- Verifique `APP_URL` em `src/config/appConfig.js` para que `Fotos.file_url` funcione corretamente.
+- `multerConfig` aceita somente `image/png` e `image/jpeg` e salva em `uploads/images`.
+- Validações de modelos retornam mensagens de erro via `e.errors.map(...)` — a API responde com arrays de mensagens em erros de validação.
+
+---
+
+## Onde olhar no código
+
+- Inicialização da app: [src/app.js](src/app.js#L1)
+- Inicialização do servidor: [src/server.js](src/server.js#L1)
+- Rotas: [src/routes](src/routes)
+- Controladores: [src/controllers](src/controllers)
+- Models: [src/models](src/models)
+- Config DB: [src/config/database.js](src/config/database.js#L1)
+- Config Multer: [src/config/multerConfig.js](src/config/multerConfig.js#L1)
+
+---
+
+Se quiser, eu posso:
+
+- Gerar exemplos mais completos de requests para cada endpoint
+- Adicionar um arquivo `.env.example`
+- Implementar testes básicos ou Postman collection
+
+Diga qual próximo passo você prefere.

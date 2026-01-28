@@ -60,7 +60,7 @@ class AlunoController {
         attributes: ['id', 'nome', 'sobrenome', 'email', 'idade', 'peso', 'altura'],
         include: {
           model: _Fotos2.default,
-          attributes: ['nome_file'],
+          attributes: ['nome_file', 'file_url'],
         },
         order: [['id', 'DESC'], [_Fotos2.default, 'id', 'DESC']],
       });
